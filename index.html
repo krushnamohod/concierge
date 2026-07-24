@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concierge — the trip fixes itself</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F4EE;
+    --paper-2:#EDEAE0;
+    --ink:#1B1D22;
+    --ink-soft:#5B5E66;
+    --board:#14171C;
+    --board-2:#20242B;
+    --amber:#F2A93B;
+    --amber-dim:#8A6423;
+    --coral:#D9532B;
+    --teal:#1C7C6B;
+    --line:rgba(27,29,34,0.12);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.6;
+  }
+  h1,h2,h3{font-family:'Space Grotesk', sans-serif; font-weight:500; letter-spacing:-0.01em;}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 32px;}
+  a{color:inherit;}
+
+  /* NAV */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:28px 32px; max-width:1080px; margin:0 auto;
+  }
+  .logo{
+    font-family:'Space Mono', monospace; font-weight:700; font-size:16px;
+    display:flex; align-items:center; gap:8px; letter-spacing:0.02em;
+  }
+  .logo-dot{width:8px; height:8px; background:var(--amber); border-radius:1px;}
+  .nav-links{display:flex; gap:36px; font-size:14px; color:var(--ink-soft);}
+  .nav-cta{
+    font-family:'Inter'; font-size:14px; font-weight:500; color:var(--ink);
+    border:1px solid var(--ink); padding:9px 18px; border-radius:2px;
+  }
+
+  /* HERO */
+  .hero{padding:40px 32px 80px; max-width:1080px; margin:0 auto;}
+  .eyebrow{
+    font-family:'Space Mono', monospace; font-size:12px; color:var(--amber-dim);
+    text-transform:uppercase; letter-spacing:0.12em; margin-bottom:20px;
+  }
+  .hero h1{
+    font-size:52px; line-height:1.08; max-width:780px; margin-bottom:22px;
+  }
+  .hero p.sub{
+    font-size:18px; color:var(--ink-soft); max-width:520px; margin-bottom:32px;
+  }
+  .hero-ctas{display:flex; gap:14px; margin-bottom:64px;}
+  .btn-primary{
+    background:var(--ink); color:var(--paper); font-size:14px; font-weight:500;
+    padding:13px 22px; border-radius:2px; border:none; cursor:pointer;
+  }
+  .btn-secondary{
+    background:transparent; color:var(--ink); font-size:14px; font-weight:500;
+    padding:13px 22px; border-radius:2px; border:1px solid var(--line); cursor:pointer;
+  }
+
+  /* SPLIT FLAP BOARD */
+  .board{
+    background:var(--board);
+    border-radius:6px;
+    padding:28px 28px 24px;
+    max-width:640px;
+  }
+  .board-head{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:'Space Mono', monospace; font-size:11px; color:#8A8E98;
+    text-transform:uppercase; letter-spacing:0.1em; margin-bottom:16px;
+  }
+  .board-live{display:flex; align-items:center; gap:6px;}
+  .live-dot{width:6px; height:6px; background:var(--amber); border-radius:50%;}
+  .board-row{
+    display:grid; grid-template-columns:70px 1fr 110px 130px;
+    gap:14px; align-items:center;
+    font-family:'Space Mono', monospace;
+    padding:11px 0;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .board-row:last-child{border-bottom:none;}
+  .board-row .flight{color:#D8DAE0; font-size:13px;}
+  .board-row .route{color:#D8DAE0; font-size:13px;}
+  .board-row .time{color:#D8DAE0; font-size:13px;}
+  .flap{
+    font-size:13px; font-weight:700; letter-spacing:0.04em;
+    padding:3px 8px; border-radius:2px; text-align:center;
+    transition:opacity 0.15s;
+  }
+  .flap.cancelled{background:rgba(217,83,43,0.18); color:#F0916F;}
+  .flap.rebooked{background:rgba(242,169,59,0.18); color:var(--amber);}
+  .flap.confirmed{background:rgba(28,124,107,0.22); color:#5BC9AF;}
+
+  /* SECTION SHARED */
+  section{padding:64px 32px; max-width:1080px; margin:0 auto;}
+  .section-label{
+    font-family:'Space Mono', monospace; font-size:12px; color:var(--amber-dim);
+    text-transform:uppercase; letter-spacing:0.1em; margin-bottom:14px;
+  }
+  .section-title{font-size:32px; max-width:600px; margin-bottom:12px;}
+  .section-sub{color:var(--ink-soft); max-width:520px; font-size:16px; margin-bottom:48px;}
+
+  /* HOW IT WORKS */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:4px; overflow:hidden;}
+  .step{background:var(--paper); padding:28px 26px;}
+  .step-num{font-family:'Space Mono', monospace; font-size:13px; color:var(--amber-dim); margin-bottom:16px;}
+  .step h3{font-size:17px; margin-bottom:8px;}
+  .step p{font-size:14px; color:var(--ink-soft);}
+
+  /* FEATURE GRID */
+  .features{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:4px; overflow:hidden;}
+  .feature{background:var(--paper); padding:30px; display:flex; gap:16px;}
+  .feature-icon{
+    width:34px; height:34px; border-radius:4px; background:var(--paper-2);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-family:'Space Mono', monospace; font-size:14px; color:var(--ink);
+  }
+  .feature h3{font-size:15px; margin-bottom:6px;}
+  .feature p{font-size:14px; color:var(--ink-soft);}
+
+  /* STATS */
+  .stats{display:flex; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:4px; overflow:hidden;}
+  .stat{background:var(--paper); padding:24px 28px; flex:1;}
+  .stat-num{font-family:'Space Mono', monospace; font-size:28px; font-weight:700; color:var(--ink);}
+  .stat-label{font-size:13px; color:var(--ink-soft); margin-top:4px;}
+
+  /* CTA BAND */
+  .cta-band{
+    background:var(--board); border-radius:6px; padding:48px 40px;
+    display:flex; align-items:center; justify-content:space-between; gap:24px;
+  }
+  .cta-band h2{color:var(--paper); font-size:26px; max-width:380px;}
+  .cta-band p{color:#9A9DA6; font-size:14px; margin-top:8px;}
+
+  footer{
+    padding:32px; max-width:1080px; margin:0 auto;
+    display:flex; justify-content:space-between; align-items:center;
+    border-top:1px solid var(--line); font-size:13px; color:var(--ink-soft);
+  }
+
+  @media (max-width:720px){
+    .hero h1{font-size:36px;}
+    .steps, .features{grid-template-columns:1fr;}
+    .board-row{grid-template-columns:56px 1fr 80px; }
+    .board-row .time{display:none;}
+    .cta-band{flex-direction:column; align-items:flex-start;}
+    .stats{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><span class="logo-dot"></span>CONCIERGE</div>
+  <div class="nav-links">
+    <span>How it works</span>
+    <span>What it handles</span>
+    <span>For card members</span>
+  </div>
+  <div class="nav-cta">Request demo</div>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Amex travel benefits · autonomous concierge</div>
+  <h1>Your trip never notices it broke.</h1>
+  <p class="sub">The moment a flight is cancelled or a connection is missed, your concierge rebooks the flight, adjusts the hotel, and files for compensation — before you've opened the app.</p>
+  <div class="hero-ctas">
+    <button class="btn-primary">See it handle a cancellation</button>
+    <button class="btn-secondary">How it works</button>
+  </div>
+
+  <div class="board">
+    <div class="board-head">
+      <span>Live disruption board</span>
+      <span class="board-live"><span class="live-dot"></span>watching 3 itineraries</span>
+    </div>
+    <div id="board-rows"></div>
+  </div>
+</div>
+
+<section>
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Three moves, no card member action</h2>
+  <p class="section-sub">A deterministic pipeline runs the sequence every time. Two specialist agents handle the judgment calls inside it.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Detect</h3>
+      <p>Live status feeds flag a cancellation, delay, or missed connection the moment it's reported — not when the card member checks.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Act</h3>
+      <p>A flight agent ranks alternatives against policy; a hotel agent re-times the stay if the new arrival no longer fits. Both execute automatically.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Notify</h3>
+      <p>One message explains what changed and why, with a single tap to see other options or undo.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">What it handles</div>
+  <h2 class="section-title">Everything a delay sets off</h2>
+  <p class="section-sub">Built for the parts of a disruption that usually take a phone call and forty minutes on hold.</p>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">✈</div>
+      <div>
+        <h3>Flight rebooking</h3>
+        <p>Scores alternatives on cabin class, arrival delta, and fare — never downgrades without asking.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⌂</div>
+      <div>
+        <h3>Hotel adjustment</h3>
+        <p>Shifts check-in or swaps the stay when the new flight time no longer lines up with the original plan.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">$</div>
+      <div>
+        <h3>Compensation claims</h3>
+        <p>Files delay-compensation claims against the airline automatically when the disruption qualifies.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">◔</div>
+      <div>
+        <h3>Real-time notification</h3>
+        <p>A single, clear update — what happened, what was done, and how to change it if needed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">&lt;30s</div><div class="stat-label">from cancellation to rebooking</div></div>
+    <div class="stat"><div class="stat-num">0</div><div class="stat-label">manual steps for the card member</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">systems coordinated automatically</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="cta-band">
+    <div>
+      <h2>Watch it resolve a live disruption.</h2>
+      <p>Delhi to London, cancelled at 2 AM, fully resolved before boarding would have started.</p>
+    </div>
+    <button class="btn-primary" style="background:var(--amber); color:var(--board);">Run the demo</button>
+  </div>
+</section>
+
+<footer>
+  <span>Built for the Amex Autonomous Travel-Disruption Concierge challenge</span>
+  <span>Concierge, 2026</span>
+</footer>
+
+<script>
+const flights = [
+  {flight:'AA 2847', route:'ORD → DEN', time:'6:40 PM', state:'cancelled'},
+  {flight:'BA 143', route:'DEL → LHR', time:'2:15 AM', state:'cancelled'},
+  {flight:'UA 908', route:'SFO → NRT', time:'11:05 AM', state:'confirmed'}
+];
+const labels = {cancelled:'cancelled', rebooked:'rebooking', confirmed:'confirmed'};
+const container = document.getElementById('board-rows');
+
+flights.forEach((f, i) => {
+  const row = document.createElement('div');
+  row.className = 'board-row';
+  row.innerHTML = `
+    <span class="flight">${f.flight}</span>
+    <span class="route">${f.route}</span>
+    <span class="time">${f.time}</span>
+    <span class="flap ${f.state}" id="flap-${i}">${labels[f.state]}</span>
+  `;
+  container.appendChild(row);
+});
+
+setTimeout(() => {
+  const flap = document.getElementById('flap-0');
+  flap.className = 'flap rebooked';
+  flap.textContent = 'rebooking';
+  setTimeout(() => {
+    flap.className = 'flap confirmed';
+    flap.textContent = 'confirmed';
+  }, 2200);
+}, 1400);
+
+setTimeout(() => {
+  const flap = document.getElementById('flap-1');
+  flap.className = 'flap rebooked';
+  flap.textContent = 'rebooking';
+  setTimeout(() => {
+    flap.className = 'flap confirmed';
+    flap.textContent = 'confirmed';
+  }, 2600);
+}, 2400);
+</script>
+
+</body>
+</html>
